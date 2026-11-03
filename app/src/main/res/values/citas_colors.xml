@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="citas_primary">#0B6E4F</color>
+    <color name="citas_primary_dark">#084C37</color>
+    <color name="citas_primary_light">#D6F0E4</color>
+    <color name="citas_accent">#F26B1D</color>
+    <color name="citas_background">#F3F7F5</color>
+    <color name="citas_surface">#FFFFFF</color>
+    <color name="citas_text">#1B2A26</color>
+    <color name="citas_text_soft">#51635D</color>
+    <color name="citas_stroke">#DCE6E1</color>
+    <color name="citas_white">#FFFFFF</color>
+</resources>

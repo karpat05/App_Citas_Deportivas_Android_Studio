@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources xmlns:tools="http://schemas.android.com/tools">
+    <style name="Base.Theme.CitasDeportivas" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/citas_primary</item>
+        <item name="colorOnPrimary">@color/citas_white</item>
+        <item name="colorPrimaryContainer">@color/citas_primary_light</item>
+        <item name="colorOnPrimaryContainer">@color/citas_primary_dark</item>
+        <item name="colorSecondary">@color/citas_accent</item>
+        <item name="android:colorBackground">@color/citas_background</item>
+        <item name="android:windowBackground">@color/citas_background</item>
+        <item name="android:textColorPrimary">@color/citas_text</item>
+        <item name="android:textColorSecondary">@color/citas_text_soft</item>
+        <item name="android:statusBarColor">@color/citas_primary_dark</item>
+    </style>
+
+    <style name="Theme.CitasDeportivas" parent="Base.Theme.CitasDeportivas" />
+
+    <!-- Splash: fondo degradado a pantalla completa -->
+    <style name="Theme.CitasDeportivas.Splash" parent="Theme.CitasDeportivas">
+        <item name="android:windowBackground">@drawable/bg_splash</item>
+        <item name="android:statusBarColor">@android:color/transparent</item>
+    </style>
+</resources>
