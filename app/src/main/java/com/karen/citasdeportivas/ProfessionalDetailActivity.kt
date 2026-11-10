@@ -8,9 +8,9 @@ import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.karen.citasdeportivas.databinding.ActivityProfessionalDetailBinding
-import com.karen.citasdeportivas.network.CONNECTION_ERROR
 import com.karen.citasdeportivas.network.RetrofitClient
 import com.karen.citasdeportivas.network.apiError
+import com.karen.citasdeportivas.network.userMessage
 import kotlinx.coroutines.launch
 
 class ProfessionalDetailActivity : AppCompatActivity() {
@@ -73,7 +73,7 @@ class ProfessionalDetailActivity : AppCompatActivity() {
                     showError(response.apiError())
                 }
             } catch (e: Exception) {
-                showError(CONNECTION_ERROR)
+                showError(e.userMessage())
             }
         }
     }
@@ -109,7 +109,7 @@ class ProfessionalDetailActivity : AppCompatActivity() {
             } catch (e: Exception) {
                 Toast.makeText(
                     this@ProfessionalDetailActivity,
-                    CONNECTION_ERROR,
+                    e.userMessage(),
                     Toast.LENGTH_LONG
                 ).show()
             }

@@ -9,11 +9,15 @@ import androidx.lifecycle.lifecycleScope
 import com.karen.citasdeportivas.databinding.ActivityAppointmentFormBinding
 import com.karen.citasdeportivas.model.Appointment
 import com.karen.citasdeportivas.model.Professional
-import com.karen.citasdeportivas.network.CONNECTION_ERROR
 import com.karen.citasdeportivas.network.RetrofitClient
 import com.karen.citasdeportivas.network.apiError
+import com.karen.citasdeportivas.network.userMessage
+import com.karen.citasdeportivas.ui.clearFieldErrors
+import com.karen.citasdeportivas.ui.fail
+import com.karen.citasdeportivas.ui.isPastDate
 import com.karen.citasdeportivas.ui.setupDatePicker
 import com.karen.citasdeportivas.ui.setupTimePicker
+import com.karen.citasdeportivas.ui.value
 import kotlinx.coroutines.launch
 
 /**
@@ -53,7 +57,8 @@ class AppointmentFormActivity : AppCompatActivity() {
             statuses
         ).also { it.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item) }
 
-        binding.etDate.setupDatePicker()
+        // Al agendar una cita nueva no se pueden elegir fechas pasadas (al editar sí, por si ya ocurrió)
+        binding.etDate.setupDatePicker(blockPast = !isEditing)
         binding.etStart.setupTimePicker()
         binding.etEnd.setupTimePicker()
         binding.btnSave.setOnClickListener { save() }
@@ -107,33 +112,48 @@ class AppointmentFormActivity : AppCompatActivity() {
                     if (index >= 0) binding.spProfessional.setSelection(index)
                 }
             } catch (e: Exception) {
-                showFormError(CONNECTION_ERROR)
+                showFormError(e.userMessage())
             }
             setBusy(false)
         }
     }
 
-    private fun save() {
-        val athlete = if (SessionManager.isAdmin) {
-            binding.etAthlete.text.toString().trim()
-        } else {
-            SessionManager.userName
-        }
-        val date = binding.etDate.text.toString().trim()
-        val start = binding.etStart.text.toString().trim()
-        val end = binding.etEnd.text.toString().trim()
-        val reason = binding.etReason.text.toString().trim()
+    // Revisa los campos antes de enviar. Devuelve el primer error (y marca ese campo) o null si todo está bien.
+    private fun validateForm(): String? {
+        clearFieldErrors(binding.etAthlete, binding.etDate, binding.etStart, binding.etEnd, binding.etReason)
 
-        val position = binding.spProfessional.selectedItemPosition
-        val professionalId = professionals.getOrNull(position)?.id
-        if (professionalId == null) {
-            showFormError("Selecciona un profesional (si no hay ninguno, crea uno primero)")
+        if (professionals.getOrNull(binding.spProfessional.selectedItemPosition) == null)
+            return "Selecciona un profesional (si no hay ninguno, crea uno primero)"
+        if (SessionManager.isAdmin && binding.etAthlete.value().isEmpty())
+            return binding.etAthlete.fail("Escribe el nombre del deportista")
+
+        val date = binding.etDate.value()
+        val start = binding.etStart.value()
+        val end = binding.etEnd.value()
+        if (date.isEmpty()) return binding.etDate.fail("Elige la fecha de la cita")
+        // Solo las citas nuevas: editar una cita que ya pasó (por ejemplo para marcarla atendida) sí se permite
+        if (!isEditing && isPastDate(date))
+            return binding.etDate.fail("No puedes agendar una cita en una fecha pasada")
+        if (start.isEmpty()) return binding.etStart.fail("Elige la hora de inicio")
+        if (end.isEmpty()) return binding.etEnd.fail("Elige la hora de fin")
+        if (start >= end) return binding.etEnd.fail("La hora de fin debe ser posterior a la de inicio")
+        if (binding.etReason.value().isEmpty()) return binding.etReason.fail("Escribe el motivo de la cita")
+        return null
+    }
+
+    private fun save() {
+        val problem = validateForm()
+        if (problem != null) {
+            showFormError(problem)
             return
         }
-        if (athlete.isEmpty() || date.isEmpty() || start.isEmpty() || end.isEmpty() || reason.isEmpty()) {
-            showFormError("Completa todos los campos")
-            return
-        }
+
+        val athlete = if (SessionManager.isAdmin) binding.etAthlete.value() else SessionManager.userName
+        val date = binding.etDate.value()
+        val start = binding.etStart.value()
+        val end = binding.etEnd.value()
+        val reason = binding.etReason.value()
+        val professionalId = professionals[binding.spProfessional.selectedItemPosition].id ?: return
 
         val status = if (isEditing) {
             statuses.getOrElse(binding.spStatus.selectedItemPosition) { "PENDIENTE" }
@@ -172,7 +192,7 @@ class AppointmentFormActivity : AppCompatActivity() {
                 }
             } catch (e: Exception) {
                 setBusy(false)
-                showFormError(CONNECTION_ERROR)
+                showFormError(e.userMessage())
             }
         }
     }

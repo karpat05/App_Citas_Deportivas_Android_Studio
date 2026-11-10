@@ -10,15 +10,15 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.karen.citasdeportivas.databinding.ActivityAppointmentDetailBinding
 import com.karen.citasdeportivas.model.Appointment
-import com.karen.citasdeportivas.network.CONNECTION_ERROR
 import com.karen.citasdeportivas.network.RetrofitClient
 import com.karen.citasdeportivas.network.apiError
+import com.karen.citasdeportivas.network.userMessage
 import kotlinx.coroutines.launch
 import retrofit2.Response
 
 /**
  * Detalle de una cita, con las acciones según el rol y el estado:
- * - Marcar como atendida: solo ADMIN y solo si está PENDIENTE
+ * - Marcar como atendida: ADMIN o PROFESSIONAL, y solo si está PENDIENTE
  * - Cancelar: ADMIN o el dueño de la cita, solo si está PENDIENTE
  * - Editar y eliminar: solo ADMIN
  */
@@ -91,7 +91,7 @@ class AppointmentDetailActivity : AppCompatActivity() {
                     ?: "Profesional #${appointment.professionalId}"
                 showAppointment(appointment, professionalName)
             } catch (e: Exception) {
-                showError(CONNECTION_ERROR)
+                showError(e.userMessage())
             }
         }
     }
@@ -115,7 +115,8 @@ class AppointmentDetailActivity : AppCompatActivity() {
 
         val pending = appointment.status == "PENDIENTE"
         val admin = SessionManager.isAdmin
-        binding.btnAttend.visibility = if (admin && pending) View.VISIBLE else View.GONE
+        val canAttend = admin || SessionManager.isProfessional
+        binding.btnAttend.visibility = if (canAttend && pending) View.VISIBLE else View.GONE
         binding.btnCancel.visibility = if (pending) View.VISIBLE else View.GONE
         binding.btnEdit.visibility = if (admin) View.VISIBLE else View.GONE
         binding.btnDelete.visibility = if (admin) View.VISIBLE else View.GONE
@@ -145,7 +146,7 @@ class AppointmentDetailActivity : AppCompatActivity() {
                     toast(response.apiError())
                 }
             } catch (e: Exception) {
-                toast(CONNECTION_ERROR)
+                toast(e.userMessage())
             }
         }
     }
@@ -161,7 +162,7 @@ class AppointmentDetailActivity : AppCompatActivity() {
                     toast(response.apiError())
                 }
             } catch (e: Exception) {
-                toast(CONNECTION_ERROR)
+                toast(e.userMessage())
             }
         }
     }

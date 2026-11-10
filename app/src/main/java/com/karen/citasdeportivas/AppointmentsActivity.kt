@@ -11,9 +11,9 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.karen.citasdeportivas.databinding.ActivityAppointmentsBinding
 import com.karen.citasdeportivas.model.Appointment
 import com.karen.citasdeportivas.model.Professional
-import com.karen.citasdeportivas.network.CONNECTION_ERROR
 import com.karen.citasdeportivas.network.RetrofitClient
 import com.karen.citasdeportivas.network.apiError
+import com.karen.citasdeportivas.network.userMessage
 import com.karen.citasdeportivas.ui.AppointmentAdapter
 import com.karen.citasdeportivas.ui.setupDatePicker
 import kotlinx.coroutines.launch
@@ -63,9 +63,19 @@ class AppointmentsActivity : AppCompatActivity() {
         binding.etDate.setupDatePicker()
 
         // ADMIN ve todas las citas. USER ve solo las suyas ("Mis citas") y esta es su pantalla principal.
-        binding.tvTitle.text = if (SessionManager.isAdmin) "Citas" else "Mis citas"
+        binding.tvTitle.text = when {
+            SessionManager.isAdmin -> "Citas"
+            SessionManager.isProfessional -> "Mi agenda"
+            else -> "Mis citas"
+        }
         // La barra con "Profesionales" y "Cerrar sesión" se muestra para los dos roles
         binding.layoutUserBar.visibility = View.VISIBLE
+        // El profesional solo ve su propia agenda: no agenda citas ni explora a otros profesionales
+        if (SessionManager.isProfessional) {
+            binding.btnProfessionals.visibility = View.GONE
+            binding.spProfessional.visibility = View.GONE
+            binding.btnNewAppointment.visibility = View.GONE
+        }
         binding.btnProfessionals.setOnClickListener {
             startActivity(Intent(this, MainActivity::class.java))
         }
@@ -158,7 +168,7 @@ class AppointmentsActivity : AppCompatActivity() {
                     showError(response.apiError())
                 }
             } catch (e: Exception) {
-                showError(CONNECTION_ERROR)
+                showError(e.userMessage())
             }
         }
     }

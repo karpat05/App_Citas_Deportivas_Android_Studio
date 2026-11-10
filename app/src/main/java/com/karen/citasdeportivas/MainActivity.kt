@@ -8,9 +8,9 @@ import androidx.lifecycle.lifecycleScope
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.karen.citasdeportivas.databinding.ActivityMainBinding
 import com.karen.citasdeportivas.model.Professional
-import com.karen.citasdeportivas.network.CONNECTION_ERROR
 import com.karen.citasdeportivas.network.RetrofitClient
 import com.karen.citasdeportivas.network.apiError
+import com.karen.citasdeportivas.network.userMessage
 import com.karen.citasdeportivas.ui.ProfessionalAdapter
 import kotlinx.coroutines.launch
 
@@ -72,7 +72,7 @@ class MainActivity : AppCompatActivity() {
                     showError(response.apiError())
                 }
             } catch (e: Exception) {
-                showError(CONNECTION_ERROR)
+                showError(e.userMessage())
             }
         }
     }

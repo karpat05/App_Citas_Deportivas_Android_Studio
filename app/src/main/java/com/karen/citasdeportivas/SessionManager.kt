@@ -22,6 +22,10 @@ object SessionManager {
 
     val isLoggedIn: Boolean get() = !token.isNullOrEmpty()
     val isAdmin: Boolean get() = role == "ADMIN"
+    val isProfessional: Boolean get() = role == "PROFESSIONAL"
+
+    /** Id del profesional con el que inició sesión (-1 si el usuario no es profesional). */
+    val professionalId: Long get() = prefs.getLong("professionalId", -1L)
 
     fun save(token: String, user: User) {
         prefs.edit()
@@ -29,6 +33,7 @@ object SessionManager {
             .putString("name", user.name)
             .putString("email", user.email)
             .putString("role", user.role)
+            .putLong("professionalId", user.professionalId ?: -1L)
             .apply()
     }
 

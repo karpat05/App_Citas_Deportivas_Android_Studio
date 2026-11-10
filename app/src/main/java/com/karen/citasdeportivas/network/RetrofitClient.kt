@@ -8,9 +8,9 @@ import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
 
 object RetrofitClient {
-    // 10.0.2.2 = el "localhost" de tu PC visto desde el emulador.
+    // 10.0.2.2 = el "localhost" de el PC visto desde el emulador.
     // El puerto 3000 es el de tu API de Node, y todas sus rutas empiezan con /api/
-    private    const val BASE_URL = "http://localhost:3000/"
+    private const val BASE_URL = "http://192.168.10.14:3000/"
 
     private val logging = HttpLoggingInterceptor().apply {
         level = HttpLoggingInterceptor.Level.BODY

@@ -24,8 +24,11 @@ fun EditText.setupTimePicker() {
     }
 }
 
-/** Convierte un EditText en un selector de fecha. Guarda el valor como AAAA-MM-DD. */
-fun EditText.setupDatePicker() {
+/**
+ * Convierte un EditText en un selector de fecha. Guarda el valor como AAAA-MM-DD.
+ * Con blockPast = true el calendario no deja elegir días anteriores a hoy.
+ */
+fun EditText.setupDatePicker(blockPast: Boolean = false) {
     isFocusable = false
     isClickable = true
     setOnClickListener {
@@ -46,12 +49,14 @@ fun EditText.setupDatePicker() {
             }
         }
 
-        DatePickerDialog(
+        val dialog = DatePickerDialog(
             context,
             { _, y, m, d -> setText(String.format(Locale.US, "%04d-%02d-%02d", y, m + 1, d)) },
             year,
             month,
             day
-        ).show()
+        )
+        if (blockPast) dialog.datePicker.minDate = System.currentTimeMillis() - 1000
+        dialog.show()
     }
 }

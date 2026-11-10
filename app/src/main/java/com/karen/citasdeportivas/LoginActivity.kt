@@ -2,15 +2,19 @@ package com.karen.citasdeportivas
 
 import android.content.Intent
 import android.os.Bundle
+import android.util.Patterns
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.karen.citasdeportivas.databinding.ActivityLoginBinding
 import com.karen.citasdeportivas.model.LoginRequest
 import com.karen.citasdeportivas.model.RegisterRequest
-import com.karen.citasdeportivas.network.CONNECTION_ERROR
 import com.karen.citasdeportivas.network.RetrofitClient
 import com.karen.citasdeportivas.network.apiError
+import com.karen.citasdeportivas.network.userMessage
+import com.karen.citasdeportivas.ui.clearFieldErrors
+import com.karen.citasdeportivas.ui.fail
+import com.karen.citasdeportivas.ui.value
 import kotlinx.coroutines.launch
 
 /** Pantalla de inicio de sesión y de registro (se alternan con el botón de abajo). */
@@ -47,12 +51,23 @@ class LoginActivity : AppCompatActivity() {
     }
 
     private fun submit() {
-        val name = binding.etName.text.toString().trim()
-        val email = binding.etEmail.text.toString().trim()
+        clearFieldErrors(binding.etName, binding.etEmail, binding.etPassword)
+        val name = binding.etName.value()
+        val email = binding.etEmail.value()
         val password = binding.etPassword.text.toString()
 
-        if (email.isEmpty() || password.isEmpty() || (registerMode && name.isEmpty())) {
-            showError("Completa todos los campos")
+        val problem = when {
+            registerMode && name.isEmpty() -> binding.etName.fail("Escribe tu nombre")
+            email.isEmpty() -> binding.etEmail.fail("Escribe tu correo")
+            !Patterns.EMAIL_ADDRESS.matcher(email).matches() ->
+                binding.etEmail.fail("El correo no es válido (ejemplo: nombre@correo.com)")
+            password.isEmpty() -> binding.etPassword.fail("Escribe tu contraseña")
+            registerMode && password.length < 6 ->
+                binding.etPassword.fail("La contraseña debe tener al menos 6 caracteres")
+            else -> null
+        }
+        if (problem != null) {
+            showError(problem)
             return
         }
 
@@ -74,17 +89,17 @@ class LoginActivity : AppCompatActivity() {
                 }
             } catch (e: Exception) {
                 setBusy(false)
-                showError(CONNECTION_ERROR)
+                showError(e.userMessage())
             }
         }
     }
 
-    // ADMIN entra al panel de administración; USER entra a "Mis citas"
+    // ADMIN entra al panel de administración, PROFESSIONAL a su agenda y USER a "Mis citas"
     private fun goHome() {
-        val target = if (SessionManager.isAdmin) {
-            MainActivity::class.java
-        } else {
-            AppointmentsActivity::class.java
+        val target = when {
+            SessionManager.isAdmin -> MainActivity::class.java
+            SessionManager.isProfessional -> ProfessionalAgendaActivity::class.java
+            else -> AppointmentsActivity::class.java
         }
         startActivity(Intent(this, target))
         finish()

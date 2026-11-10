@@ -7,10 +7,13 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.lifecycleScope
 import com.karen.citasdeportivas.databinding.ActivityProfessionalFormBinding
 import com.karen.citasdeportivas.model.Professional
-import com.karen.citasdeportivas.network.CONNECTION_ERROR
 import com.karen.citasdeportivas.network.RetrofitClient
 import com.karen.citasdeportivas.network.apiError
+import com.karen.citasdeportivas.network.userMessage
+import com.karen.citasdeportivas.ui.clearFieldErrors
+import com.karen.citasdeportivas.ui.fail
 import com.karen.citasdeportivas.ui.setupTimePicker
+import com.karen.citasdeportivas.ui.value
 import kotlinx.coroutines.launch
 
 /** Sirve para crear (POST) y para editar (PUT) un profesional. */
@@ -54,20 +57,30 @@ class ProfessionalFormActivity : AppCompatActivity() {
                     showFormError(response.apiError())
                 }
             } catch (e: Exception) {
-                showFormError(CONNECTION_ERROR)
+                showFormError(e.userMessage())
             }
             setSaving(false)
         }
     }
 
     private fun save() {
-        val name = binding.etName.text.toString().trim()
-        val specialty = binding.etSpecialty.text.toString().trim()
-        val start = binding.etStart.text.toString().trim()
-        val end = binding.etEnd.text.toString().trim()
+        clearFieldErrors(binding.etName, binding.etSpecialty, binding.etStart, binding.etEnd)
+        val name = binding.etName.value()
+        val specialty = binding.etSpecialty.value()
+        val start = binding.etStart.value()
+        val end = binding.etEnd.value()
 
-        if (name.isEmpty() || specialty.isEmpty() || start.isEmpty() || end.isEmpty()) {
-            showFormError("Completa todos los campos")
+        // Cada campo vacío muestra su propio mensaje y queda marcado en rojo
+        val problem = when {
+            name.isEmpty() -> binding.etName.fail("Escribe el nombre del profesional")
+            specialty.isEmpty() -> binding.etSpecialty.fail("Escribe la especialidad")
+            start.isEmpty() -> binding.etStart.fail("Elige la hora de inicio de atención")
+            end.isEmpty() -> binding.etEnd.fail("Elige la hora de fin de atención")
+            start >= end -> binding.etEnd.fail("La hora de fin debe ser posterior a la de inicio")
+            else -> null
+        }
+        if (problem != null) {
+            showFormError(problem)
             return
         }
 
@@ -99,7 +112,7 @@ class ProfessionalFormActivity : AppCompatActivity() {
                 }
             } catch (e: Exception) {
                 setSaving(false)
-                showFormError(CONNECTION_ERROR)
+                showFormError(e.userMessage())
             }
         }
     }

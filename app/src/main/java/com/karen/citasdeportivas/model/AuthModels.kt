@@ -4,7 +4,8 @@ data class User(
     val id: Long,
     val name: String,
     val email: String,
-    val role: String // "ADMIN" o "USER"
+    val role: String, // "ADMIN", "USER" o "PROFESSIONAL"
+    val professionalId: Long? = null // solo viene con valor si el rol es PROFESSIONAL
 )
 
 data class LoginRequest(
